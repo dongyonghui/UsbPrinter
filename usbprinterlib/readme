@@ -1,0 +1,62 @@
+本类库实现了商米设备的打印功能和usb打印功能
+
+使用方法：在使用打印功能前需要先初始化设备类型，建议在application的oncreate中调用
+          初始化设备示例： PrinterManage.initPrinter(this, PrinterDeviceTypeConstants.DEVICE_SUNMI);
+
+          打印示例：
+          PrinterBean printerBean = new PrinterBean();
+                          printerBean.printCount = 2;
+                          printerBean.templateBeanKey = "printAdmissionTicket";
+
+                          PrintAdmissionTicket printAdmissionTicket = new PrintAdmissionTicket();
+                          printAdmissionTicket.setAdmissionTicketGameName("疯狂飞火轮");
+                          printAdmissionTicket.setOperatorName("zhang san");
+                          printAdmissionTicket.setOrderNo("001");
+                          printAdmissionTicket.setPayInfo("支付宝：￥15");
+                          printerBean.templateBean = printAdmissionTicket;
+                          printerBean.templateInfo = TxtReader.getStringFromAssetsByFullPath(this, "/assets/printer_template_80/ADMISSION_TICKET.vm");
+          PrintUtil.print(getApplicationContext(),printerBean,handler);
+
+          vm58模板示例：
+          #if( $printAdmissionTicket.storeName )
+          <C>$printAdmissionTicket.storeName</C>
+          #end
+          #if($printAdmissionTicket.orderNo)
+          $row.format("","订单编号:","10","0","0",$printAdmissionTicket.orderNo, "22","0","0")
+          #end
+          #if($printAdmissionTicket.orderTime)
+          $row.format("","订单时间:","10","0","0",$printAdmissionTicket.orderTime, "22","0","0")
+          #end
+          #if($printAdmissionTicket.operatorName)
+          $row.format("","收银员:","10","0","0",$printAdmissionTicket.operatorName, "22","0","0")
+          #end
+          --------------------------------
+          #set( $countInfo ="x$printAdmissionTicket.ticketCount" )
+          <L>$row.format("",$printAdmissionTicket.admissionTicketGameName,"22","0","0",$countInfo, "10","0","2")</L>
+          --------------------------------
+          #if($printAdmissionTicket.qrCode2CheckTicket)
+          <C><QR>$printAdmissionTicket.qrCode2CheckTicket</QR></C>
+          #end
+
+          vm80模板示例：
+          #if( $printAdmissionTicket.storeName )
+          <C>$printAdmissionTicket.storeName</C>
+          #end
+          #if($printAdmissionTicket.orderNo)
+          $row.format("","订单编号:","10","0","0",$printAdmissionTicket.orderNo, "38","0","0")
+          #end
+          #if($printAdmissionTicket.orderTime)
+          $row.format("","订单时间:","10","0","0",$printAdmissionTicket.orderTime, "38","0","0")
+          #end
+          #if($printAdmissionTicket.operatorName)
+          $row.format("","收银员:","10","0","0",$printAdmissionTicket.operatorName, "38","0","0")
+          #end
+          ------------------------------------------------
+          #set( $countInfo ="x$printAdmissionTicket.ticketCount" )
+          <L>$row.format("",$printAdmissionTicket.admissionTicketGameName,"38","0","0",$countInfo, "10","0","2")</L>
+          ------------------------------------------------
+          #if($printAdmissionTicket.qrCode2CheckTicket)
+          <C><QR>$printAdmissionTicket.qrCode2CheckTicket</QR></C>
+          #end
+
+
