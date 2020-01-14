@@ -140,10 +140,10 @@ public class UsbPrintManager {
             return;
         }
 
-        //如果没有连接打印机，则进行初始化设备
+        //如果没有连接打印机，则进行连接设备
         if (!mUsbPrinter.isConnected()) {
             sendNotify(OnPrinterNotifyListener.NotifyMessage.WAITING_CONNECT_DEVICE);
-            mUsbPrinter.initPrinter(context);
+            mUsbPrinter.connect(context);
             return;
         }
 

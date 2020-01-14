@@ -1,6 +1,5 @@
 package com.dyh.usbprinterlib;
 
-import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -12,7 +11,6 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
-import android.os.Build;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -49,39 +47,16 @@ public class USBPrinter {
      * @param context 上下文
      */
     public USBPrinter initPrinter(Context context) {
-        getInstance().init(context);
-        return getInstance();
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void init(Context context) {
-        mContext = context;
+        mContext = context.getApplicationContext();
         mUsbManager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
         mPermissionIntent = PendingIntent.getBroadcast(mContext, 0, new Intent(ACTION_USB_PERMISSION), 0);
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         mContext.registerReceiver(mUsbDeviceReceiver, filter);
-
-        // 列出所有的USB设备，并且都请求获取USB权限
-        HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
-
-        for (UsbDevice device : deviceList.values()) {
-            usbInterface = device.getInterface(0);
-            //筛选出打印机
-            if (usbInterface.getInterfaceClass() == 7) {
-                Log.d("device", device.getProductName() + "     " + device.getManufacturerName());
-                Log.d("device", device.getVendorId() + "     " + device.getProductId() + "      " + device.getDeviceId());
-                Log.d("device", usbInterface.getInterfaceClass() + "");
-                if (!mUsbManager.hasPermission(device)) {
-                    mUsbManager.requestPermission(device, mPermissionIntent);
-                } else {
-                    connectUsbPrinter(device);
-                }
-            }
-        }
-
+        return getInstance();
     }
+
 
     private final BroadcastReceiver mUsbDeviceReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -116,8 +91,10 @@ public class USBPrinter {
             mUsbDeviceConnection.close();
             mUsbDeviceConnection = null;
         }
-        mContext.unregisterReceiver(mUsbDeviceReceiver);
-        mContext = null;
+        if (null != mContext) {
+            mContext.unregisterReceiver(mUsbDeviceReceiver);
+            mContext = null;
+        }
         mUsbManager = null;
     }
 
@@ -166,6 +143,16 @@ public class USBPrinter {
     }
 
     /**
+     * @return true表示设备已初始化
+     */
+    public boolean isInit() {
+        if (null != mUsbManager) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return true表示设备已连接
      */
     public boolean isConnected() {
@@ -173,5 +160,26 @@ public class USBPrinter {
             return true;
         }
         return false;
+    }
+
+    public void connect(Context context) {
+        if (!isInit()) {
+            initPrinter(context);
+        }
+        // 列出所有的USB设备，并且都请求获取USB权限
+        HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
+        for (UsbDevice device : deviceList.values()) {
+            usbInterface = device.getInterface(0);
+            //筛选出打印机
+            if (usbInterface.getInterfaceClass() == 7) {
+                Log.d("device", device.getVendorId() + "     " + device.getProductId() + "      " + device.getDeviceId());
+                Log.d("device", usbInterface.getInterfaceClass() + "");
+                if (!mUsbManager.hasPermission(device)) {
+                    mUsbManager.requestPermission(device, mPermissionIntent);
+                } else {
+                    connectUsbPrinter(device);
+                }
+            }
+        }
     }
 }
